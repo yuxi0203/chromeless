@@ -604,6 +604,20 @@ function getS3ObjectKeyPrefix() {
   return process.env['CHROMELESS_S3_OBJECT_KEY_PREFIX'] || ''
 }
 
+function getS3ObjectKeyTimePrefix() {
+  const date = new Date()
+  const year = date.getFullYear()
+  const month = date.getUTCMonth() + 1
+  const todayDate = date.getUTCDate()
+  const hour = date.getUTCHours()
+  const min  = Math.floor(date.getUTCMinutes() / 10)
+  let timeKey = ''
+  if (process.env['CHROMELESS_S3_OBJECT_KEY_TIME_PREFIX_ENABLE'] === 'true') {
+    timeKey = `${year}/${month}/${todayDate}/${hour}/${min}/`
+  }
+  return timeKey
+}
+
 function getS3FilesPermissions() {
   return process.env['CHROMELESS_S3_OBJECT_ACL'] || 'public-read'
 }
@@ -629,7 +643,7 @@ export async function uploadToS3(
   if (!s3ContentType) {
     throw new Error(`Unknown S3 Content type ${contentType}`)
   }
-  const s3Path = `${getS3ObjectKeyPrefix()}${cuid()}.${s3ContentType.extension}`
+  const s3Path = `${getS3ObjectKeyPrefix()}${getS3ObjectKeyTimePrefix()}${cuid()}.${s3ContentType.extension}`
   const s3 = new AWS.S3()
   await s3
     .putObject({
